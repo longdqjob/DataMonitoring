@@ -46,6 +46,7 @@ public class ProcessFtp extends ProcessThreadMX {
         Date now = new Date();
         if (now.getDate() != date) {
             FTPUploadFile.getInstance().createFolderBackupDaily(sdf.format(now));
+            date = now.getDate();
         }
     }
 

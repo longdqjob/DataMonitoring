@@ -118,6 +118,7 @@ public class FTPUploadFile {
         FTPClient ftpClient = new FTPClient();
         boolean result = false;
         File firstLocalFile = null;
+        boolean backupSuccess = false;
         try {
             ftpClient.connect(server, port);
             ftpClient.login(user, pass);
@@ -151,7 +152,9 @@ public class FTPUploadFile {
             }
 
             firstLocalFile = new File(absolutePath);
-            backupFile(firstLocalFile, localFileName);
+            
+            //Backup file
+            backupSuccess = backupFile(firstLocalFile, localFileName);
 
             FileInputStream inputStream = new FileInputStream(firstLocalFile);
 
@@ -187,11 +190,11 @@ public class FTPUploadFile {
             log.error("IOException uploadFileToRemoteServer: ", ex);
             result = false;
         } finally {
+            if (backupSuccess && firstLocalFile != null) {
+                firstLocalFile.delete();
+            }
             try {
-//                if (firstLocalFile != null) {
-//                    firstLocalFile.delete();
-//                }
-                if (ftpClient.isConnected()) {
+                if (ftpClient != null && ftpClient.isConnected()) {
                     ftpClient.logout();
                     ftpClient.disconnect();
                 }
@@ -202,11 +205,17 @@ public class FTPUploadFile {
         return result;
     }
 
-    private void backupFile(File source, String fileName) throws IOException {
+    private boolean backupFile(File source, String fileName) {
         if (!StringUtils.isBlank(backupFolderDaily)) {
-            File dest = new File(backupFolderDaily + File.separator + fileName);;
-            FileUtils.copyFile(source, dest);
+            try {
+                File dest = new File(backupFolderDaily + File.separator + fileName);
+                FileUtils.copyFile(source, dest);
+            } catch (Exception ex) {
+                log.error("ERROR backupFile: " + fileName, ex);
+                return false;
+            }
         }
+        return true;
     }
 
     public boolean makeDirectories(FTPClient ftpClient, String dirPath)
