@@ -81,10 +81,11 @@ public class ProcessImportIfl extends ProcessThreadMX {
         try {
             this.influxDB.enableBatch(Properties.getInfluxdbBatchMax(), Properties.getInfluxdbBatchMin(), TimeUnit.MILLISECONDS);
             String rp = defaultRetentionPolicy(this.influxDB.version());
+            Point point = null;
             for (Device device : listRecord) {
-                logger.info("----device.getTime(): " + device.getTimeImport());
-                logger.info("----device.getTime new Date(): " + new Date(device.getTimeImport()));
-                Point point = Point.measurement(measurement)
+//                logger.info("----device.getTime(): " + device.getTimeImport());
+//                logger.info("----device.getTime new Date(): " + new Date(device.getTimeImport()));
+                point = Point.measurement(measurement)
                         .tag("device", device.getDevice())
                         .addField("value", (float) device.getValue())
                         .time(device.getTimeImport(), TimeUnit.MILLISECONDS)

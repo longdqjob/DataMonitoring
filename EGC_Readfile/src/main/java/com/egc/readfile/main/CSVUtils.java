@@ -111,9 +111,6 @@ public class CSVUtils {
                     time = line[1];
                     dDate = sdf.parse(date + time);
 
-                    logger.info("---timeData: " + (date + time));
-                    logger.info("---dDate: " + dDate);
-
                     timeData = dDate.getTime();
 
                     for (String value : line) {

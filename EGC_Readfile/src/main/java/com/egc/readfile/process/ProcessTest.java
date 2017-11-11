@@ -6,8 +6,8 @@
 package com.egc.readfile.process;
 
 import com.egc.readfile.common.Properties;
-import com.egc.readfile.obj.Device;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +18,6 @@ import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
-import org.influxdb.impl.InfluxDBResultMapper;
 
 /**
  *
@@ -58,6 +57,9 @@ public class ProcessTest extends ProcessThreadMX {
         influxDB.setDatabase(Properties.getInfluxdbDb());
 
         getData();
+
+        Thread.sleep(5000);
+        testLoad();
     }
 
     private void getData() {
@@ -92,6 +94,51 @@ public class ProcessTest extends ProcessThreadMX {
 //        }
     }
 
+    private void testLoad() {
+        logger.info("Begin testload: " + lstDevice.size());
+        long current = System.currentTimeMillis();
+        Calendar cal = Calendar.getInstance();
+
+        cal.setTimeInMillis(current);
+        cal.set(Calendar.MILLISECOND, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.DATE, 1);
+        cal.set(Calendar.MONTH, 10);
+//        cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - 1);
+
+        int day = -1;
+
+        this.influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS);
+        long t = System.currentTimeMillis();
+        Random rand = new Random();
+        String rp = defaultRetentionPolicy(this.influxDB.version());
+        Point point = null;
+        while (cal.getTimeInMillis() < current) {
+            for (String device : lstDevice) {
+                point = Point.measurement(measurement)
+                        .time(cal.getTimeInMillis(), TimeUnit.MILLISECONDS)
+                        .tag("device", device)
+                        .addField("value", (float) rand.nextInt(80) + 1)
+                        .build();
+                this.influxDB.write(dbName, rp, point);
+            }
+
+            cal.add(Calendar.MINUTE, 1);
+            if (cal.get(Calendar.DATE) != day) {
+                day = cal.get(Calendar.DATE);
+                logger.info("------------Calendar: " + cal.getTime() + " takes: " + (System.currentTimeMillis() - t) + " ms");
+                t = System.currentTimeMillis();
+            }
+//            try {
+//                Thread.sleep(100);
+//            } catch (InterruptedException ex) {
+//                logger.error("ERROR Sleep: ", ex);
+//            }
+        }
+        this.influxDB.disableBatch();
+        logger.info("finish testload");
+    }
+
     @Override
     protected void process() {
         try {
@@ -116,11 +163,12 @@ public class ProcessTest extends ProcessThreadMX {
         Random rand = new Random();
         this.influxDB.enableBatch(2000, 100, TimeUnit.MILLISECONDS);
         String rp = defaultRetentionPolicy(this.influxDB.version());
+        Point point = null;
         for (String device : lstDevice) {
-            Point point = Point.measurement(measurement)
+            point = Point.measurement(measurement)
                     .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                     .tag("device", device)
-                    .addField("value", (float) rand.nextInt(100) + 1)
+                    .addField("value", (float) rand.nextInt(80) + 1)
                     .build();
             this.influxDB.write(dbName, rp, point);
         }

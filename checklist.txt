@@ -32,3 +32,109 @@ chown root /home/ftpacc
 chmod 750 /home/ftpacc
 mkdir /home/ftpacc/template
 chown ftpacc:ftpaccess /home/ftpacc/template
+
+
+-------------------------INFLUX------------------------------------------------
+use collectd;
+SELECT mean("value") FROM "logs" WHERE time >= 1478599748335ms GROUP BY time(6h), "device"
+SELECT mean("value") FROM "logs" WHERE time >= 1478599748335ms GROUP BY time(1M), "device"
+
+
+# DDL
+CREATE DATABASE collectd
+#CREATE RETENTION POLICY oneday ON collectd DURATION 1d REPLICATION 1
+
+# DML
+# CONTEXT-DATABASE: collectd
+# CONTEXT-RETENTION-POLICY: oneday
+
+logs,device=device_1 value=10
+logs,device=device_2 value=10
+logs,device=device_1 value=12
+logs,device=device_3 value=10
+logs,device=device_4 value=10
+
+INSERT logs,device=device_1 value=2
+
+--------------------------------
+# DML
+# CONTEXT-DATABASE: collectd
+logs,device=device_1 value=10 1509940544953158738
+logs,device=device_2 value=10 1509940544953158738
+logs,device=device_1 value=12 1509940544953158738
+logs,device=device_3 value=10 1509940544953158738
+logs,device=device_4 value=10 1509940544953158738
+
+SHOW TAG VALUES FROM logs;
+
+SHOW TAG VALUES FROM logs WITH KEY = "device"
+
+select * from logs where device =~ /device_1|device_3/
+
+SELECT mean("value") FROM "logs" WHERE ("device" =~ /^(KI-251B|KI-261B|ZI-101B|ZI-102B|ZI-201B|ZI-202B|ZI-251B|ZI-252B)$/) AND time >= now() - 1h GROUP BY time(10s), "device""
+
+
+SELECT mean("value") FROM "logs" WHERE ("device" =~ /^(VI-251B)$/) AND time >= now() - 1h GROUP BY time(10s), "device""
+
+SELECT * FROM "logs" WHERE ("device" =~ /^(thuyetlv)$/)
+
+1510038017913900916
+-- 
+1610897520000000000
+INSERT logs,device=thuyetlv value=200
+
+
+lstDevice
+
+precision rfc3339
+date +%T -s "10:29:00"
+
+SELECT mean("value") FROM "logs" WHERE time >= now() - 1d AND "device" =~ /^(VI-251B|VI-252B|VI-253B|VI-254B|VI-261B|VI-262B|VI-263B|VI-264B)$/ group by time(1h), device
+
+SELECT mean("value") FROM "logs" WHERE time >= now() - 1h AND "device" =~ /^(VI-251B|VI-252B|VI-253B|VI-254B|VI-261B|VI-262B|VI-263B|VI-264B)$/ group by time(10m), device
+SELECT mean("value") FROM "logs" WHERE time >= now() - 1h AND "device" =~ /^(VI-251B|VI-252B|VI-253B|VI-254B|VI-261B|VI-262B|VI-263B|VI-264B)$/ group by device
+
+SELECT * FROM "logs" WHERE ("device" =~ /^()$/) AND time >= now() - 1h GROUP BY time(10s)
+SELECT * FROM "logs" WHERE "device" =~ /^(VI-251B|VI-252B|VI-253B|VI-254B|VI-261B|VI-262B|VI-263B|VI-264B)$/ AND time >= now() - 1h
+SELECT max("value") FROM "logs" WHERE "device" =~ /^(VI-251B|VI-252B|VI-253B|VI-254B|VI-261B|VI-262B|VI-263B|VI-264B)$/ AND time >= now() - 1h GROUP BY time(10s), "device"
+SELECT mean("value") FROM "logs" WHERE ("device" =~ /^()$/) AND time >= now() - 1h GROUP BY time(10s)
+
+SELECT max("value") FROM "logs" WHERE "device" =~ /^(VI-251B|VI-252B|VI-253B|VI-254B|VI-261B|VI-262B|VI-263B|VI-264B)$/ AND time >= now() - 1h group by time(10m),device
+SELECT max("value") FROM "logs" WHERE time >= now() - 1d group by time(10m),device
+SELECT max("value") FROM "logs" group by time(10m),device
+SELECT mean("value") FROM "logs" WHERE "device" =~ /^(VI-251B|VI-252B|VI-253B|VI-254B|VI-261B|VI-262B|VI-263B|VI-264B)$/ AND time >= '2017-11-07T16:45:00Z' AND time <= '2017-11-07T17:30:00Z' GROUP BY time(12m),device
+
+SELECT mean("value") FROM "logs" WHERE time >= now() - 1h AND "device" =~ /^(VI-251B|VI-252B|VI-253B|VI-254B|VI-261B|VI-262B|VI-263B|VI-264B)$/ GROUP BY time(12m),device
+
+DROP SERIES FROM logs
+
+DROP SERIES FROM logs WHERE time > now()
+DROP SERIES FROM logs WHERE time = '2016-11-06T00:00:00Z'
+
+select device from logs WHERE time >= '2017-11-06T00:00:00Z' group by device
+
+select distinct(value) from logs group by device
+
+select distinct(value) from logs group by device
+
+show tag values with key = device
+
+select device,max(value) from logs WHERE time >= '2017-11-06T00:00:00Z' group by time(12m)
+
+SELECT mean("value") FROM "logs" WHERE time >= now() - 1h GROUP BY time(12m), "datacenter"
+
+SELECT mean("value") FROM "logs" WHERE time >= now() - 30m GROUP BY time(10m), "hostname";
+SELECT mean("value") FROM "logins.count" WHERE time >= now() - 30m GROUP BY time(10m)
+
+select device, mean(value) from "logs"
+
+select device from "logs" group by time(12m)
+
+select device,count(value) from "logs" group by time(12m)
+
+select device,max(value) from logs group by time(12m)
+
+
+
+
+
